@@ -1,20 +1,36 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, MessageSquare } from "lucide-react";
 
-const ChatHistory = ({ history, onDelete }) => {
+const ChatHistory = ({
+  history,
+  onDelete,
+  onSelect,
+}) => {
   return (
     <div className="space-y-2">
       {history.length === 0 ? (
-        <p className="text-gray-500 text-sm">No chats yet.</p>
+        <p className="text-zinc-500 text-sm">
+          No chats yet
+        </p>
       ) : (
         history.map((chat, index) => (
           <div
             key={index}
-            className="flex items-center justify-between bg-zinc-700 rounded-lg p-2 hover:bg-zinc-600 transition"
+            className="group bg-zinc-800 hover:bg-zinc-700 transition rounded-xl p-3 cursor-pointer flex items-center justify-between"
           >
-            <p className="truncate text-sm w-3/4">{chat.query}</p>
+            <div
+              onClick={() => onSelect(chat)}
+              className="flex items-center gap-2 overflow-hidden flex-1"
+            >
+              <MessageSquare size={16} />
+
+              <span className="truncate text-sm">
+                {chat.title}
+              </span>
+            </div>
+
             <button
               onClick={() => onDelete(index)}
-              className="p-1 hover:text-red-400"
+              className="opacity-0 group-hover:opacity-100 transition hover:text-red-500"
             >
               <Trash2 size={16} />
             </button>
