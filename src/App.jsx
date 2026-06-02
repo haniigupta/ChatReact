@@ -1,106 +1,349 @@
+import { Menu, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { useState } from "react";
-import "./App.css";
+import { Loader, Plus } from "lucide-react";
+import { Toaster } from "react-hot-toast";
+
 import Answer from "./components/Answer";
-import ChatHistory from "./components/ChatHistory"; // <-- create this
-import { Loader } from "lucide-react"; // simple loading icon
+import ChatHistory from "./components/ChatHistory";
+import ChatInput from "./components/ChatInput";
+import ChatBubble from "./components/ChatBubble";
+
+import { askGroq } from "./utils/api";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 
 function App() {
+
+  const [showSidebar, setShowSidebar] =
+    useState(false);
+
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState([]);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [messages, setMessages] =
+    useState([]);
+
+  const [history, setHistory] =
+    useLocalStorage(
+      "chat-history",
+      []
+    );
 
   const askQuestion = async () => {
+
     if (!query.trim()) return;
+
     setLoading(true);
 
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization":
-            "Bearer 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",
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o-mini",
-          messages: [{ role: "user", content: query }],
-        }),
-      });
 
-      const data = await response.json();
-      let answer = data?.choices?.[0]?.message?.content || "No response";
+      const userMessage = {
+        role: "user",
+        content: query,
+      };
 
-      // fix formatting
-      answer = answer
-        .replace(/(###)/g, "\n$1")
-        .replace(/(\d+\.)/g, "\n$1")
-        .replace(/(-\s)/g, "\n$1");
+      setMessages((prev) => [
+        ...prev,
+        userMessage,
+      ]);
 
-      const formatted = answer
-        .split(/\n\s*\n/)
-        .map((block) => block.trim())
-        .filter((b) => b.length > 0);
+      const answer =
+        await askGroq(query);
 
-      setResult(formatted);
-      setHistory((prev) => [...prev, { query, response: formatted }]);
-    } catch (error) {
-      console.error(error);
-      setResult(["Error fetching response."]);
-    } finally {
-      setLoading(false);
+      const aiMessage = {
+        role: "assistant",
+        content: answer,
+      };
+
+      setMessages((prev) => [
+        ...prev,
+        aiMessage,
+      ]);
+
+      const chat = {
+        title:
+          query.length > 30
+            ? query.slice(0, 30) + "..."
+            : query,
+
+        query,
+        messages: [
+          userMessage,
+          aiMessage,
+        ],
+        createdAt: Date.now(),
+      };
+
+      setHistory([
+        chat,
+        ...history,
+      ]);
+
       setQuery("");
+
+    } catch (error) {
+
+      console.log(error);
+
+      setCurrentAnswer(
+        "Something went wrong."
+      );
+
+    } finally {
+
+      setLoading(false);
+
     }
   };
 
   const deleteChat = (index) => {
-    setHistory((prev) => prev.filter((_, i) => i !== index));
+
+    setHistory(
+      history.filter(
+        (_, i) => i !== index
+      )
+    );
+  };
+
+  const loadChat = (chat) => {
+
+    setMessages(
+      chat.messages
+    );
+  };
+
+  const newChat = () => {
+
+    setMessages([]);
+    setQuery("");
   };
 
   return (
-    <div className="flex h-screen bg-zinc-900 text-white">
-      {/* Left sidebar */}
-      <div className="w-1/4 bg-zinc-800 border-r border-zinc-700 p-4 overflow-y-auto">
-        <h2 className="text-lg font-semibold mb-3">Chat History</h2>
-        <ChatHistory history={history} onDelete={deleteChat} />
-      </div>
+    <>
+      <Toaster />
 
-      {/* Main chat section */}
-      <div className="flex flex-col w-3/4 p-6 relative">
-        <div className="flex-1 overflow-y-auto space-y-4 mb-20 text-left">
-          {loading ? (
-            <div className="flex items-center text-gray-400">
-              <Loader className="animate-spin mr-2" size={18} />
-              thinking…
-            </div>
-          ) : result.length > 0 ? (
-            result.map((item, index) => <Answer ans={item} key={index} />)
-          ) : (
-            <p className="text-gray-500 italic text-center mt-10">
-              hey! how can i help you today?
-            </p>
-          )}
-        </div>
+      <div className="min-h-screen flex bg-zinc-950 text-white">
 
-        {/* Input box fixed at bottom */}
-        <div className="absolute bottom-4 left-6 right-6 flex items-center bg-zinc-800 rounded-3xl border border-zinc-600 overflow-hidden">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask me anything..."
-            className="flex-1 p-4 bg-transparent outline-none text-white"
-            onKeyDown={(e) => e.key === "Enter" && askQuestion()}
-          />
+        {/* Sidebar */}
+
+        <div
+          className="
+  hidden
+  md:flex
+  md:w-80
+  border-r
+  border-zinc-800
+  bg-zinc-950
+  p-4
+  flex-col
+  overflow-y-auto
+"
+        >
+
           <button
-            onClick={askQuestion}
-            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-3xl font-medium transition-all"
+            onClick={newChat}
+            className="mb-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 rounded-xl p-3 transition"
           >
-            Ask
+            <Plus size={18} />
+            New Chat
           </button>
+
+          <ChatHistory
+            history={history}
+            onDelete={deleteChat}
+            onSelect={loadChat}
+          />
+
         </div>
+
+
+
+        {showSidebar && (
+          <motion.div
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
+            className="
+      fixed
+      left-0
+      top-0
+      h-screen
+      w-72
+      bg-zinc-950
+      z-50
+      border-r
+      border-zinc-800
+      p-4
+    "
+          >
+            <button
+              onClick={() =>
+                setShowSidebar(false)
+              }
+              className="mb-4"
+            >
+              <X />
+            </button>
+
+            <ChatHistory
+              history={history}
+              onDelete={deleteChat}
+              onSelect={loadChat}
+            />
+          </motion.div>
+        )}
+
+        {/* Main */}
+
+        <div className="flex flex-col flex-1 p-4 md:p-6">
+
+          <div className="flex items-center gap-3 mb-8">
+
+            <button
+              onClick={() =>
+                setShowSidebar(true)
+              }
+              className="
+      md:hidden
+      bg-zinc-800
+      p-2
+      rounded-lg
+    "
+            >
+              <Menu size={22} />
+            </button>
+
+            <div>
+
+              <h1
+                className="
+      text-3xl
+      md:text-5xl
+      font-extrabold
+      bg-gradient-to-r
+      from-blue-500
+      via-purple-500
+      to-cyan-400
+      bg-clip-text
+      text-transparent
+    "
+              >
+                ChatReact AI
+              </h1>
+
+              
+
+            </div>
+
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+
+            {messages.length > 0 ? (
+
+              <div className="space-y-4">
+
+                {messages.map(
+                  (
+                    message,
+                    index
+                  ) => (
+                    <ChatBubble
+                      key={index}
+                      message={message}
+                    />
+                  )
+                )}
+
+                {loading && (
+
+                  <div className="flex">
+
+                    <div
+                      className="
+          bg-zinc-800
+          border
+          border-zinc-700
+          rounded-3xl
+          px-5
+          py-4
+        "
+                    >
+                      <div className="flex gap-2">
+
+                        <span className="h-3 w-3 rounded-full bg-blue-500 animate-bounce"></span>
+
+                        <span
+                          className="h-3 w-3 rounded-full bg-purple-500 animate-bounce"
+                          style={{
+                            animationDelay:
+                              "0.2s",
+                          }}
+                        />
+
+                        <span
+                          className="h-3 w-3 rounded-full bg-pink-500 animate-bounce"
+                          style={{
+                            animationDelay:
+                              "0.4s",
+                          }}
+                        />
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                )}
+
+              </div>
+
+            ) : (
+
+              <div className="flex flex-col items-center justify-center h-full">
+
+                <div
+                  className="
+      h-20
+      w-20
+      rounded-full
+      bg-gradient-to-r
+      from-blue-500
+      to-purple-500
+      mb-6
+    "
+                />
+
+                <h2 className="text-3xl font-bold">
+                  Welcome to ChatReact AI
+                </h2>
+
+                <p className="text-zinc-500 mt-3">
+                  Ask questions,
+                  generate ideas,
+                  and explore concepts.
+                </p>
+
+              </div>
+
+            )}
+
+          </div>
+
+          <ChatInput
+            query={query}
+            setQuery={setQuery}
+            askQuestion={askQuestion}
+            loading={loading}
+          />
+
+        </div>
+
       </div>
-    </div>
+    </>
   );
 }
 

@@ -23,9 +23,19 @@ const ChatHistory = ({
             >
               <MessageSquare size={16} />
 
-              <span className="truncate text-sm">
-                {chat.title}
-              </span>
+              <div className="overflow-hidden">
+
+  <p className="font-medium truncate">
+    {chat.title}
+  </p>
+
+  <p className="text-xs text-zinc-500">
+    {new Date(
+      chat.createdAt
+    ).toLocaleDateString()}
+  </p>
+
+</div>
             </div>
 
             <button

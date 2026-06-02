@@ -5,7 +5,19 @@ const ChatInput = ({
   loading,
 }) => {
   return (
-    <div className="bg-zinc-900/70 backdrop-blur-xl border border-zinc-700 rounded-3xl p-3 flex gap-3">
+    <div
+  className="
+  bg-zinc-900/70
+  backdrop-blur-xl
+  border
+  border-zinc-700
+  rounded-3xl
+  p-2
+  md:p-3
+  flex
+  gap-2
+"
+>
 
       <textarea
         rows={1}
@@ -29,7 +41,9 @@ const ChatInput = ({
       <button
         disabled={loading}
         onClick={askQuestion}
-        className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition"
+        className="px-3
+md:px-5
+py-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition"
       >
         Send
       </button>
