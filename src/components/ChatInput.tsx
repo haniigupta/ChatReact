@@ -6,7 +6,7 @@ const ChatInput = ({
 }) => {
   return (
     <div
-  className="
+      className="
   bg-zinc-900/70
   backdrop-blur-xl
   border
@@ -17,7 +17,7 @@ const ChatInput = ({
   flex
   gap-2
 "
->
+    >
 
       <textarea
         rows={1}

@@ -1,4 +1,4 @@
-import Answer from "./Answer";
+import Answer from "./Answer.js";
 
 const ChatBubble = ({
   message,

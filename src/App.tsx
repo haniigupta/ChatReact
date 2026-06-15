@@ -4,13 +4,13 @@ import { useState } from "react";
 import { Loader, Plus } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
-import Answer from "./components/Answer";
-import ChatHistory from "./components/ChatHistory";
-import ChatInput from "./components/ChatInput";
-import ChatBubble from "./components/ChatBubble";
+import Answer from "./components/Answer.js";
+import ChatHistory from "./components/ChatHistory.js";
+import ChatInput from "./components/ChatInput.js";
+import ChatBubble from "./components/ChatBubble.js";
 
-import { askGroq } from "./utils/api";
-import { useLocalStorage } from "./hooks/useLocalStorage";
+import { askGroq } from "./utils/api.js";
+import { useLocalStorage } from "./hooks/useLocalStorage.js";
 
 function App() {
 
@@ -233,7 +233,7 @@ function App() {
                 ChatReact AI
               </h1>
 
-              
+
 
             </div>
 
