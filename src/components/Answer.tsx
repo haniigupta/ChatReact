@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import toast from "react-hot-toast";
+import {toast} from "react-hot-toast";
 import { Copy, Check } from "lucide-react";
 
 interface AnswerProps {

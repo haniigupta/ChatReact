@@ -1,18 +1,17 @@
-import Answer from "./Answer.js";
+import Answer from "./Answer";
+import type { Message } from "../types";
 
-const ChatBubble = ({
-  message,
-}) => {
+interface ChatBubbleProps {
+  message: Message;
+}
 
-  const isUser =
-    message.role === "user";
+const ChatBubble = ({ message }: ChatBubbleProps) => {
+  const isUser = message.role === "user";
 
   return (
     <div
       className={`flex ${
-        isUser
-          ? "justify-end"
-          : "justify-start"
+        isUser ? "justify-end" : "justify-start"
       }`}
     >
       <div
@@ -23,13 +22,9 @@ const ChatBubble = ({
         }`}
       >
         {isUser ? (
-          <p>
-            {message.content}
-          </p>
+          <p>{message.content}</p>
         ) : (
-          <Answer
-            ans={message.content}
-          />
+          <Answer ans={message.content} />
         )}
       </div>
     </div>

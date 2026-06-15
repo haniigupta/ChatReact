@@ -1,10 +1,17 @@
 import { Trash2, MessageSquare } from "lucide-react";
+import type { Chat } from "../types";
+
+interface ChatHistoryProps {
+  history: Chat[];
+  onDelete: (index: number) => void;
+  onSelect: (chat: Chat) => void;
+}
 
 const ChatHistory = ({
   history,
   onDelete,
   onSelect,
-}) => {
+}: ChatHistoryProps) => {
   return (
     <div className="space-y-2">
       {history.length === 0 ? (
@@ -24,18 +31,16 @@ const ChatHistory = ({
               <MessageSquare size={16} />
 
               <div className="overflow-hidden">
+                <p className="font-medium truncate">
+                  {chat.title}
+                </p>
 
-  <p className="font-medium truncate">
-    {chat.title}
-  </p>
-
-  <p className="text-xs text-zinc-500">
-    {new Date(
-      chat.createdAt
-    ).toLocaleDateString()}
-  </p>
-
-</div>
+                <p className="text-xs text-zinc-500">
+                  {new Date(
+                    chat.createdAt
+                  ).toLocaleDateString()}
+                </p>
+              </div>
             </div>
 
             <button

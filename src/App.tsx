@@ -1,45 +1,44 @@
-import { Menu, X } from "lucide-react";
+
+import { Menu, X, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Loader, Plus } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
-import Answer from "./components/Answer.js";
-import ChatHistory from "./components/ChatHistory.js";
-import ChatInput from "./components/ChatInput.js";
-import ChatBubble from "./components/ChatBubble.js";
+import ChatHistory from "./components/ChatHistory";
+import ChatInput from "./components/ChatInput";
+import ChatBubble from "./components/ChatBubble";
 
-import { askGroq } from "./utils/api.js";
-import { useLocalStorage } from "./hooks/useLocalStorage.js";
+import { askGroq } from "./utils/api";
+import { useLocalStorage } from "./hooks/useLocalStorage";
+
+import type { Message, Chat } from "./types";
 
 function App() {
-
   const [showSidebar, setShowSidebar] =
-    useState(false);
+    useState<boolean>(false);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] =
+    useState<string>("");
 
   const [loading, setLoading] =
-    useState(false);
+    useState<boolean>(false);
 
   const [messages, setMessages] =
-    useState([]);
+    useState<Message[]>([]);
 
   const [history, setHistory] =
-    useLocalStorage(
+    useLocalStorage<Chat[]>(
       "chat-history",
       []
     );
 
-  const askQuestion = async () => {
-
+  const askQuestion = async (): Promise<void> => {
     if (!query.trim()) return;
 
     setLoading(true);
 
     try {
-
-      const userMessage = {
+      const userMessage: Message = {
         role: "user",
         content: query,
       };
@@ -52,7 +51,7 @@ function App() {
       const answer =
         await askGroq(query);
 
-      const aiMessage = {
+      const aiMessage: Message = {
         role: "assistant",
         content: answer,
       };
@@ -62,17 +61,19 @@ function App() {
         aiMessage,
       ]);
 
-      const chat = {
+      const chat: Chat = {
         title:
           query.length > 30
             ? query.slice(0, 30) + "..."
             : query,
 
         query,
+
         messages: [
           userMessage,
           aiMessage,
         ],
+
         createdAt: Date.now(),
       };
 
@@ -85,11 +86,7 @@ function App() {
 
     } catch (error) {
 
-      console.log(error);
-
-      setCurrentAnswer(
-        "Something went wrong."
-      );
+      console.error(error);
 
     } finally {
 
@@ -98,23 +95,28 @@ function App() {
     }
   };
 
-  const deleteChat = (index) => {
+  const deleteChat = (
+    index: number
+  ): void => {
 
     setHistory(
       history.filter(
-        (_, i) => i !== index
+        (_: Chat, i: number) =>
+          i !== index
       )
     );
   };
 
-  const loadChat = (chat) => {
+  const loadChat = (
+    chat: Chat
+  ): void => {
 
     setMessages(
       chat.messages
     );
   };
 
-  const newChat = () => {
+  const newChat = (): void => {
 
     setMessages([]);
     setQuery("");
@@ -126,25 +128,35 @@ function App() {
 
       <div className="min-h-screen flex bg-zinc-950 text-white">
 
-        {/* Sidebar */}
+        {/* Desktop Sidebar */}
 
         <div
           className="
-  hidden
-  md:flex
-  md:w-80
-  border-r
-  border-zinc-800
-  bg-zinc-950
-  p-4
-  flex-col
-  overflow-y-auto
-"
+            hidden
+            md:flex
+            md:w-80
+            border-r
+            border-zinc-800
+            bg-zinc-950
+            p-4
+            flex-col
+            overflow-y-auto
+          "
         >
-
           <button
             onClick={newChat}
-            className="mb-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 rounded-xl p-3 transition"
+            className="
+              mb-4
+              flex
+              items-center
+              justify-center
+              gap-2
+              bg-blue-600
+              hover:bg-blue-700
+              rounded-xl
+              p-3
+              transition
+            "
           >
             <Plus size={18} />
             New Chat
@@ -155,10 +167,9 @@ function App() {
             onDelete={deleteChat}
             onSelect={loadChat}
           />
-
         </div>
 
-
+        {/* Mobile Sidebar */}
 
         {showSidebar && (
           <motion.div
@@ -166,17 +177,17 @@ function App() {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             className="
-      fixed
-      left-0
-      top-0
-      h-screen
-      w-72
-      bg-zinc-950
-      z-50
-      border-r
-      border-zinc-800
-      p-4
-    "
+              fixed
+              left-0
+              top-0
+              h-screen
+              w-72
+              bg-zinc-950
+              z-50
+              border-r
+              border-zinc-800
+              p-4
+            "
           >
             <button
               onClick={() =>
@@ -195,7 +206,7 @@ function App() {
           </motion.div>
         )}
 
-        {/* Main */}
+        {/* Main Content */}
 
         <div className="flex flex-col flex-1 p-4 md:p-6">
 
@@ -206,35 +217,31 @@ function App() {
                 setShowSidebar(true)
               }
               className="
-      md:hidden
-      bg-zinc-800
-      p-2
-      rounded-lg
-    "
+                md:hidden
+                bg-zinc-800
+                p-2
+                rounded-lg
+              "
             >
               <Menu size={22} />
             </button>
 
             <div>
-
               <h1
                 className="
-      text-3xl
-      md:text-5xl
-      font-extrabold
-      bg-gradient-to-r
-      from-blue-500
-      via-purple-500
-      to-cyan-400
-      bg-clip-text
-      text-transparent
-    "
+                  text-3xl
+                  md:text-5xl
+                  font-extrabold
+                  bg-gradient-to-r
+                  from-blue-500
+                  via-purple-500
+                  to-cyan-400
+                  bg-clip-text
+                  text-transparent
+                "
               >
                 ChatReact AI
               </h1>
-
-
-
             </div>
 
           </div>
@@ -247,8 +254,8 @@ function App() {
 
                 {messages.map(
                   (
-                    message,
-                    index
+                    message: Message,
+                    index: number
                   ) => (
                     <ChatBubble
                       key={index}
@@ -263,13 +270,13 @@ function App() {
 
                     <div
                       className="
-          bg-zinc-800
-          border
-          border-zinc-700
-          rounded-3xl
-          px-5
-          py-4
-        "
+                        bg-zinc-800
+                        border
+                        border-zinc-700
+                        rounded-3xl
+                        px-5
+                        py-4
+                      "
                     >
                       <div className="flex gap-2">
 
@@ -307,14 +314,14 @@ function App() {
 
                 <div
                   className="
-      h-20
-      w-20
-      rounded-full
-      bg-gradient-to-r
-      from-blue-500
-      to-purple-500
-      mb-6
-    "
+                    h-20
+                    w-20
+                    rounded-full
+                    bg-gradient-to-r
+                    from-blue-500
+                    to-purple-500
+                    mb-6
+                  "
                 />
 
                 <h2 className="text-3xl font-bold">
@@ -348,3 +355,4 @@ function App() {
 }
 
 export default App;
+
